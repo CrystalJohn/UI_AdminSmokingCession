@@ -1,0 +1,122 @@
+.blog-management-page {
+  padding: 24px 24px 0 0;
+}
+
+.blog-management-page h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+
+.search-filter-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.search-input, .filter-select, .date-input {
+  padding: 8px 12px;
+  border: 1px solid #e3e8f7;
+  border-radius: 8px;
+  font-size: 15px;
+  background: #fff;
+}
+
+.add-article-btn {
+  background: #4285f4;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.add-article-btn:hover {
+  background: #2563eb;
+}
+
+.blog-table-wrapper {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(99,102,241,0.06);
+  border: 1px solid #e3e8f7;
+  padding: 0 0 12px 0;
+}
+
+.blog-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.blog-table th, .blog-table td {
+  padding: 12px 10px;
+  text-align: left;
+}
+
+.blog-table th {
+  background: #f4f7fe;
+  font-weight: 700;
+  color: #222;
+}
+
+.blog-table tr:not(:last-child) {
+  border-bottom: 1px solid #e3e8f7;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-block;
+}
+.status-published {
+  background: #d1fae5;
+  color: #059669;
+}
+.status-review {
+  background: #fef3c7;
+  color: #b45309;
+}
+.status-rejected {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.action-btn {
+  margin-right: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.action-btn.edit {
+  background: #e0e7ff;
+  color: #6366f1;
+}
+.action-btn.delete {
+  background: #fff0f0;
+  color: #e74c3c;
+}
+.action-btn.cancel {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+@media (max-width: 900px) {
+  .search-filter-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .blog-management-page {
+    padding: 12px 4px 0 0;
+  }
+} 
