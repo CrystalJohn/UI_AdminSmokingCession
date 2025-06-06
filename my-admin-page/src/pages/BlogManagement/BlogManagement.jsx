@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './BlogManagement.css';
+import ReusableTable from '../../components/ReusableTable/ReusableTable.jsx';
 
 const mockPosts = [
   {
@@ -67,6 +68,25 @@ const statusColors = {
 const BlogManagement = () => {
   const [posts] = useState(mockPosts);
 
+  const columns = [
+    { title: 'Post ID', dataIndex: 'id' },
+    { title: 'Title', dataIndex: 'title' },
+    { title: 'Author', dataIndex: 'author' },
+    { title: 'Creation date', dataIndex: 'creationDate' },
+    { title: 'Last updated', dataIndex: 'lastUpdated' },
+    { title: 'Status', dataIndex: 'status', render: (value) => (
+      <span className={`status-badge ${statusColors[value]}`}>{value.replace('_', ' ')}</span>
+    ) },
+    { title: 'Views', dataIndex: 'views' },
+    { title: 'Action', dataIndex: 'action', render: () => (
+      <>
+        <button className="action-btn edit">Edit</button>
+        <button className="action-btn delete">Delete</button>
+        <button className="action-btn cancel">Cancel publication</button>
+      </>
+    ) },
+  ];
+
   return (
     <div className="blog-management-page">
       <h2>Blog Management</h2>
@@ -80,40 +100,7 @@ const BlogManagement = () => {
         <button className="add-article-btn">+ Create new article</button>
       </div>
       <div className="blog-table-wrapper">
-        <table className="blog-table">
-          <thead>
-            <tr>
-              <th>Post ID</th>
-              <th>Title</th>
-              <th>Author</th>
-              <th>Creation date</th>
-              <th>Last updated</th>
-              <th>Status</th>
-              <th>Views</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {posts.map((post, idx) => (
-              <tr key={idx}>
-                <td>{post.id}</td>
-                <td>{post.title}</td>
-                <td>{post.author}</td>
-                <td>{post.creationDate}</td>
-                <td>{post.lastUpdated}</td>
-                <td>
-                  <span className={`status-badge ${statusColors[post.status]}`}>{post.status.replace('_', ' ')}</span>
-                </td>
-                <td>{post.views}</td>
-                <td>
-                  <button className="action-btn edit">Edit</button>
-                  <button className="action-btn delete">Delete</button>
-                  <button className="action-btn cancel">Cancel publication</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <ReusableTable columns={columns} data={posts} />
       </div>
     </div>
   );
