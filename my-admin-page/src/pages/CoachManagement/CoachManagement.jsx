@@ -1,43 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './CoachManagement.css';
 import ReusableTable from '../../components/ReusableTable/ReusableTable.jsx';
-import { Modal, Tabs, Form, Input, DatePicker, Select, Button } from 'antd';
-
-const mockCoaches = [
-  {
-    id: 'C001',
-    name: 'Emma Sarah',
-    email: 'emma.jack@example.com',
-    expertise: ['Quit Smoking', 'Reduce Stress'],
-    rating: 4,
-    todayConsults: 2,
-    currentCases: 1,
-    joinDate: '16/1/2023',
-    status: 'ACTIVE',
-  },
-  {
-    id: 'C002',
-    name: 'David Sad',
-    email: 'emma.jack@example.com',
-    expertise: ['Quit Smoking', 'Healthy lifestyle'],
-    rating: 4,
-    todayConsults: 4,
-    currentCases: 2,
-    joinDate: '16/1/2023',
-    status: 'INACTIVE',
-  },
-  {
-    id: 'C003',
-    name: 'Emma Saraher',
-    email: 'emma.jack@example.com',
-    expertise: ['Quit Smoking', 'Fitness'],
-    rating: 5,
-    todayConsults: 0,
-    currentCases: 1,
-    joinDate: '16/1/2023',
-    status: 'ACTIVE',
-  },
-];
+import { Modal, Tabs, Form, Input, DatePicker, Select, Button, message } from 'antd';
+import { coachService } from '../../services/coachService';
 
 const statusColors = {
   'ACTIVE': 'status-active',
@@ -45,13 +10,101 @@ const statusColors = {
 };
 
 const CoachManagement = () => {
-  const [coaches] = useState(mockCoaches);
+  const [coaches, setCoaches] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(5);
   const [sortConfig, setSortConfig] = useState({ key: '', order: '' });
   const [showAddCoachModal, setShowAddCoachModal] = useState(false);
   const [form] = Form.useForm();
   const [activeTab, setActiveTab] = useState('basic');
+  const [filters, setFilters] = useState({
+    search: '',
+    expertise: '',
+    status: '',
+  });
+
+  // Fetch coaches data
+  const fetchCoaches = async () => {
+    try {
+      setLoading(true);
+      const response = await coachService.getCoaches(filters);
+      setCoaches(response.data);
+    } catch (error) {
+      message.error('Failed to fetch coaches');
+      console.error('Error fetching coaches:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCoaches();
+  }, [filters]);
+
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleSort = (key) => {
+    setSortConfig(prev => {
+      if (prev.key === key) {
+        return { key, order: prev.order === 'asc' ? 'desc' : 'asc' };
+      }
+      return { key, order: 'asc' };
+    });
+    setPage(1);
+  };
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+  };
+
+  const handleAddCoach = async (values) => {
+    try {
+      await coachService.createCoach(values);
+      message.success('Coach added successfully');
+      setShowAddCoachModal(false);
+      form.resetFields();
+      fetchCoaches();
+    } catch (error) {
+      message.error('Failed to add coach');
+      console.error('Error adding coach:', error);
+    }
+  };
+
+  const handleUpdateCoach = async (id, values) => {
+    try {
+      await coachService.updateCoach(id, values);
+      message.success('Coach updated successfully');
+      fetchCoaches();
+    } catch (error) {
+      message.error('Failed to update coach');
+      console.error('Error updating coach:', error);
+    }
+  };
+
+  const handleDeleteCoach = async (id) => {
+    try {
+      await coachService.deleteCoach(id);
+      message.success('Coach deleted successfully');
+      fetchCoaches();
+    } catch (error) {
+      message.error('Failed to delete coach');
+      console.error('Error deleting coach:', error);
+    }
+  };
+
+  const handleViewDetails = async (id) => {
+    try {
+      const coachDetails = await coachService.getCoachById(id);
+      // TODO: Implement view details modal or navigation
+      console.log('Coach details:', coachDetails);
+    } catch (error) {
+      message.error('Failed to fetch coach details');
+      console.error('Error fetching coach details:', error);
+    }
+  };
 
   const columns = [
     { title: 'User ID', dataIndex: 'id', sortable: true, key: 'id' },
@@ -69,10 +122,11 @@ const CoachManagement = () => {
     { title: 'Status', dataIndex: 'status', sortable: true, key: 'status', render: (value) => (
       <span className={`status-badge ${statusColors[value]}`}>{value}</span>
     ) },
-    { title: 'Action', dataIndex: 'action', render: () => (
+    { title: 'Action', dataIndex: 'action', render: (_, record) => (
       <>
-        <button className="action-btn edit">Edit</button>
-        <button className="action-btn details">See Details</button>
+        <button className="action-btn edit" onClick={() => handleUpdateCoach(record.id, record)}>Edit</button>
+        <button className="action-btn details" onClick={() => handleViewDetails(record.id)}>See Details</button>
+        <button className="action-btn delete" onClick={() => handleDeleteCoach(record.id)}>Delete</button>
       </>
     ) },
   ];
@@ -94,57 +148,57 @@ const CoachManagement = () => {
     return sortedCoaches.slice(start, start + pageSize);
   }, [sortedCoaches, page, pageSize]);
 
-  const handleSort = (key) => {
-    setSortConfig(prev => {
-      if (prev.key === key) {
-        // Toggle order
-        return { key, order: prev.order === 'asc' ? 'desc' : 'asc' };
-      }
-      return { key, order: 'asc' };
-    });
-    setPage(1); // Reset to first page on sort
-  };
-
-  const handlePageChange = (newPage) => {
-    setPage(newPage);
-  };
-
-  const handleAddCoach = () => {
-    form.validateFields().then(() => {
-      // Handle form submission here (e.g., API call)
-      setShowAddCoachModal(false);
-      form.resetFields();
-    });
-  };
-
   return (
     <div className="coach-management-page">
       <h2>Coach Management</h2>
       <div className="summary-cards-row">
         <div className="summary-card">
           <div className="summary-label">Active Coaches</div>
-          <div className="summary-value">5</div>
+          <div className="summary-value">{coaches.filter(c => c.status === 'ACTIVE').length}</div>
         </div>
         <div className="summary-card">
           <div className="summary-label">Today's Consultations</div>
-          <div className="summary-value">7</div>
+          <div className="summary-value">{coaches.reduce((sum, c) => sum + c.todayConsults, 0)}</div>
         </div>
         <div className="summary-card">
           <div className="summary-label">Avg. Rating</div>
-          <div className="summary-value rating-value"><span role="img" aria-label="star">⭐</span> 4.8 / 5</div>
+          <div className="summary-value rating-value">
+            <span role="img" aria-label="star">⭐</span>
+            {(coaches.reduce((sum, c) => sum + c.rating, 0) / coaches.length).toFixed(1)} / 5
+          </div>
         </div>
       </div>
       <div className="list-title">List of coaches</div>
       <div className="search-filter-row">
-        <input className="search-input" placeholder="Search by name, email, profile name..." />
-        <select className="filter-select"><option>Filter expertise</option></select>
-        <select className="filter-select"><option>Filter status</option></select>
+        <input 
+          className="search-input" 
+          placeholder="Search by name, email, profile name..." 
+          value={filters.search}
+          onChange={(e) => handleFilterChange('search', e.target.value)}
+        />
+        <select 
+          className="filter-select"
+          value={filters.expertise}
+          onChange={(e) => handleFilterChange('expertise', e.target.value)}
+        >
+          <option value="">Filter expertise</option>
+        </select>
+        <select 
+          className="filter-select"
+          value={filters.status}
+          onChange={(e) => handleFilterChange('status', e.target.value)}
+        >
+          <option value="">Filter status</option>
+          <option value="ACTIVE">Active</option>
+          <option value="INACTIVE">Inactive</option>
+        </select>
         <button className="add-user-btn" onClick={() => setShowAddCoachModal(true)}>+ Add Coach</button>
       </div>
       <div className="coach-table-wrapper">
         <ReusableTable
           columns={columns}
           data={paginatedCoaches}
+          loading={loading}
           pagination={{ page, pageSize, total: coaches.length }}
           onPageChange={handlePageChange}
           onSort={handleSort}
@@ -171,6 +225,7 @@ const CoachManagement = () => {
                   form={form}
                   layout="vertical"
                   name="add-coach-form"
+                  onFinish={handleAddCoach}
                   initialValues={{ gender: 'Nam', status: 'Active' }}
                 >
                   <div style={{ display: 'flex', gap: 16 }}>
@@ -256,7 +311,7 @@ const CoachManagement = () => {
           <Button onClick={() => setShowAddCoachModal(false)}>
             Cancel
           </Button>
-          <Button type="primary" onClick={handleAddCoach}>
+          <Button type="primary" onClick={() => form.submit()}>
             Add Coach
           </Button>
         </div>
